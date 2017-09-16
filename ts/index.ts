@@ -1,12 +1,14 @@
 import { SendMailOptions } from 'nodemailer'
 import base64url from "base64url"
 import * as MailComposer from 'nodemailer/lib/mail-composer'
+import * as mailparser from 'mailparser'
 import * as google from 'googleapis'
 import * as fs from 'fs'
 import * as path from 'path'
 import * as readline from 'readline'
 import * as homedir from 'homedir'
 
+const simpleParser = mailparser.simpleParser
 const googleAuth = require('google-auth-library')
 const gmail = google.gmail('v1')
 
@@ -77,14 +79,11 @@ function sendMail(auth) {
     const mail = new MailComposer(opts)
 
     const stream = mail.compile().build((err, msg) => {
-        const m = base64url(msg)
-        console.log(m)
-
         const req = gmail.users.messages.send({
             auth: auth
             , userId: 'me'
             , resource: {
-                raw: m
+                raw: base64url.encode(msg)
             }
         })
     })
@@ -94,7 +93,24 @@ function listMail(auth) {
     gmail.users.messages.list({
         auth: auth
         , userId: 'me'
-    }, (err, res) => console.log(err, res))
+        , q: 'has:attachment'
+        , maxResults: 1
+    }, (err, res) => {
+        console.log(err, res)
+        res.messages.forEach(msg => {
+            gmail.users.messages.get({
+                auth: auth
+                , userId: 'me'
+                , id: msg.id
+                , format: 'raw'
+            }, (err, res) => {
+                simpleParser(base64url.decode(res.raw))
+                    .then(mail => {
+                        console.log(mail.to)
+                    })
+            })
+        })
+    })
 }
 
 authorize(listMail)
