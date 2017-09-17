@@ -1,3 +1,4 @@
+import { JumpFm } from 'jumpfm-api'
 import { SendMailOptions } from 'nodemailer'
 import base64url from "base64url"
 import * as MailComposer from 'nodemailer/lib/mail-composer'
@@ -93,10 +94,11 @@ function listMail(auth) {
     gmail.users.messages.list({
         auth: auth
         , userId: 'me'
-        , q: 'has:attachment'
-        , maxResults: 1
+        , q: 'has:attachment AND filename:pdf'
+        , maxResults: 10
     }, (err, res) => {
         console.log(err, res)
+        const groups: Set<Set<string>> = new Set()
         res.messages.forEach(msg => {
             gmail.users.messages.get({
                 auth: auth
@@ -106,11 +108,26 @@ function listMail(auth) {
             }, (err, res) => {
                 simpleParser(base64url.decode(res.raw))
                     .then(mail => {
-                        console.log(mail.to)
+                        try {
+                            const emails: Set<string>
+                                = new Set(mail.to.value.map(val => val.address))
+                            mail.from.value.forEach(val => emails.add(val.address))
+                            groups.add(emails)
+                            console.log(emails, groups.size)
+                        } catch (e) {
+                            console.log(e)
+                        }
                     })
             })
         })
     })
 }
 
-authorize(listMail)
+export const load = (jumpfm: JumpFm) => {
+    console.log('gmail')
+    jumpfm.panels.forEach(panel => {
+        panel.bind('gmail', ['g'], () => {
+            console.log('gmail')
+        })
+    })
+}
