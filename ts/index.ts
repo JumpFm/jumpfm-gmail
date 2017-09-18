@@ -1,16 +1,24 @@
-import { JumpFm } from 'jumpfm-api'
+import { JumpFm, File } from 'jumpfm-api'
 import * as path from 'path'
 import Auth from './Auth'
 import Gmail from './Gmail'
 
 
 export const load = (jumpfm: JumpFm) => {
-    const getAttachments = (obj: any): { name: string, id: string }[] => {
-        if (obj.filename && obj.body && obj.body.attachmentId)
+    const getAttachments = (obj: any): File[] => {
+        if (obj.filename && obj.body && obj.body.attachmentId) {
+            const id = obj.body.attachmentId
             return [{
                 name: obj.filename
-                , id: obj.body.attachmentId
+                , path: id
+                , isDirectory: () => false
+                , open: () => {
+                    // TODO
+                    console.log('open', id)
+                }
             }]
+        }
+
         if (obj.payload) return getAttachments(obj.payload)
         const res = []
         if (!obj.parts) return res
@@ -31,8 +39,10 @@ export const load = (jumpfm: JumpFm) => {
                         .then(msgs => {
                             Promise.all(msgs.map(msg => gmail.get(msg.id)))
                                 .then(as => {
-                                    as.forEach(a => items.push.apply(items, a))
-                                    console.log('AS', as)
+                                    as.forEach(a =>
+                                        items.push.apply(items, getAttachments(a))
+                                    )
+                                    console.log('AS', as, items)
                                     panel.setItems(items)
                                 })
                         })
