@@ -1,8 +1,3 @@
-import { JumpFm } from 'jumpfm-api'
-import * as path from 'path'
-import { gmail } from './gmail'
-
-
 // function authorize(callback) {
 //     try {
 //         const token = require(pathToken)
@@ -73,23 +68,12 @@ import { gmail } from './gmail'
 //     })
 // }
 
+import { JumpFm } from 'jumpfm-api'
+import * as path from 'path'
+import Auth from './Auth'
+
 
 export const load = (jumpfm: JumpFm) => {
-    const opn = (url: string) => () => jumpfm.electron.shell.openItem(url)
-    const config = path.join(jumpfm.root, 'gmail_attachments.json')
-
-    console.log('gmail')
-    jumpfm.statusBar.buttonAdd(
-        'fa-paperclip'
-        , 'gmail attachments'
-        , opn(config)
-    )
-
-    jumpfm.panels.forEach(panel => {
-        panel.bind('gmail', ['g'], () => {
-            console.log('gmail')
-        })
-    })
-
-    console.log(gmail.getAuthUrl())
+    new Auth().getToken()
+        .then(token => console.log(token))
 }
