@@ -23,20 +23,20 @@ export const load = (jumpfm: JumpFm) => {
     jumpfm.panels.forEach(panel => {
         panel.onCd(() => {
             if (panel.getUrl().protocol != 'gmail') return
-            new Auth().getToken().then(auth => {
-                const gmail = new Gmail(auth)
-                gmail.query('filename:pdf', 10)
-                    .then(msgs => {
-                        msgs.forEach(msg => {
-                            gmail.get(msg.id)
-                                .then(res => getAttachments(res))
-                                .then(as => panel.setItems(as.map(a => ({
-                                    path: a.id
-                                    , name: a.name
-                                }))))
+            const items = []
+            new Auth().getToken()
+                .then(auth => {
+                    const gmail = new Gmail(auth)
+                    gmail.query('filename:pdf', 10)
+                        .then(msgs => {
+                            Promise.all(msgs.map(msg => gmail.get(msg.id)))
+                                .then(as => {
+                                    as.forEach(a => items.push.apply(items, a))
+                                    console.log('AS', as)
+                                    panel.setItems(items)
+                                })
                         })
-                    })
-            })
+                })
         })
 
         panel.bind('gmail', ['g'], () => {

@@ -59,7 +59,7 @@ class Gmail {
             auth: this.auth
             , userId: 'me'
             , id: id
-            , fields: 'id,payload(body/attachmentId,filename,parts(body/attachmentId,filename))'
+            , fields: 'payload(body/attachmentId,filename,parts(body/attachmentId,filename,parts))'
         }, (err, result) => {
             if (err) return rej(err)
             res(result)

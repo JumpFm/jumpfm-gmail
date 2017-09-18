@@ -1,7 +1,11 @@
 {
-    "name": "jumpfm-gmail-attachments",
+    "name": "jumpfm-gmail",
     "version": "1.0.0",
-    "description": "",
+    "description": "view gmail attachments in [JumpFm](http://jumpfm.org)",
+    "repository": {
+        "type": "git",
+        "url": "git@github.com:JumpFm/jumpfm-gmail.git"
+    },
     "main": "js/index.js",
     "author": "Gilad Kutiel",
     "license": "ISC",
